@@ -1,0 +1,27 @@
+name: Sync README to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Update Registry Description
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Sync README
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: sorobanops/sorobanopsnetwork-soroban-ops-docker # Update if your Docker Hub namespace differs
+          short-description: "An automated execution sandbox for profiling Stellar Soroban smart contracts."
