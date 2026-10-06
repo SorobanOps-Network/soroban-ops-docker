@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Use an explicit, slim Rust base image for reproducibility and small attack surface
 FROM rust:1.80.0-slim-bookworm
 
@@ -12,6 +13,14 @@ RUN useradd -m -s /bin/bash sorobanops
 # Set and secure the working directory
 WORKDIR /app
 RUN chown -R sorobanops:sorobanops /app
+
+# Configure compiler cache environment variables for BuildKit acceleration
+ENV SCCACHE_DIR=/root/.cache/sccache
+
+# Leverage Docker BuildKit cache mounts to preserve compiler state across local image rebuilds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/root/.cache/sccache \
+    cargo --version
 
 # Switch context to the non-root user
 USER sorobanops
