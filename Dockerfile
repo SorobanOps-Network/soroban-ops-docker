@@ -7,12 +7,13 @@ LABEL org.opencontainers.image.source="https://github.com/SorobanOps-Network/sor
 LABEL org.opencontainers.image.description="Containerized execution sandbox for SorobanOps profiling"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# DevSecOps: Create a non-root user to run pipeline operations securely
-RUN useradd -m -s /bin/bash sorobanops
+# DevSecOps: Create dedicated unprivileged system group and user with fixed UID/GID for execution safety
+RUN groupadd --gid 10001 sorobanops && \
+    useradd --uid 10001 --gid sorobanops --shell /bin/bash --create-home sorobanops
 
-# Set and secure the working directory
+# Set and secure the working directory with explicit ownership
 WORKDIR /app
-RUN chown -R sorobanops:sorobanops /app
+RUN chown -R sorobanops:sorobanops /app /home/sorobanops
 
 # Configure compiler cache environment variables for BuildKit acceleration
 ENV SCCACHE_DIR=/root/.cache/sccache
@@ -22,7 +23,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/root/.cache/sccache \
     cargo --version
 
-# Switch context to the non-root user
+# Switch execution context to the unprivileged non-root user
 USER sorobanops
 
 # Default command
